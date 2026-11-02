@@ -64,10 +64,21 @@ public class IotDeviceMessageSubscriber implements IotMessageSubscriber<IotDevic
 
         TenantUtils.execute(message.getTenantId(), () -> {
             // 1.1 更新设备的最后时间
-            IotDeviceDO device = deviceService.validateDeviceExistsFromCache(message.getDeviceId());
-            devicePropertyService.updateDeviceReportTimeAsync(device.getId(), LocalDateTime.now());
-            // 1.2 更新设备的连接 server
-            devicePropertyService.updateDeviceServerIdAsync(device.getId(), message.getServerId());
+            // 设备已删除时（例如删除时消息仍在途），跳过处理，避免消息不断重投：https://github.com/YunaiV/ruoyi-vue-pro/issues/1271
+            IotDeviceDO device = deviceService.getDeviceFromCache(message.getDeviceId());
+            if (device == null) {
+                log.warn("[onMessage][message({}) 对应的设备不存在，忽略处理]", message);
+                return;
+            }
+            // 特殊：离线消息不算活跃，也不改变连接的 server，避免旧连接的离线把路由改回旧节点
+            if (!IotDeviceMessageUtils.isStateOffline(message)) {
+                devicePropertyService.updateDeviceReportTimeAsync(device.getId(), LocalDateTime.now());
+                // 1.2 更新设备的连接 server：早于当前上线时间的旧消息，不改路由
+                if (device.getOnlineTime() == null || message.getReportTime() == null
+                        || !message.getReportTime().isBefore(device.getOnlineTime())) {
+                    devicePropertyService.updateDeviceServerIdAsync(device.getId(), message.getServerId());
+                }
+            }
 
             // 2. 未上线的设备，强制上线
             forceDeviceOnline(message, device);
@@ -89,8 +100,10 @@ public class IotDeviceMessageSubscriber implements IotMessageSubscriber<IotDevic
 
         // 特殊：设备非在线时，主动标记设备为在线
         // 为什么不直接更新状态呢？因为通过 IotDeviceMessage 可以经过一系列的处理，例如说记录日志、规则引擎等等
+        // 事件时间沿用源消息的上报时间：迟到的旧消息（早于离线）不会把设备重新拉上线
         try {
-            deviceMessageService.sendDeviceMessage(IotDeviceMessage.buildStateUpdateOnline().setDeviceId(device.getId()));
+            deviceMessageService.sendDeviceMessage(IotDeviceMessage.buildStateUpdateOnline(), device,
+                    null, message.getReportTime());
         } catch (Exception e) {
             // 注意：即使执行失败，也不影响主流程
             log.error("[forceDeviceOnline][message({}) device({}) 强制设备上线失败]", message, device, e);

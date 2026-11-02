@@ -46,6 +46,15 @@ public interface ErrorCodeConstants {
     ErrorCode DEVICE_REGISTER_DISABLED = new ErrorCode(1_050_003_210, "该产品未开启动态注册功能");
     ErrorCode DEVICE_REGISTER_SECRET_INVALID = new ErrorCode(1_050_003_211, "产品密钥验证失败");
     ErrorCode DEVICE_REGISTER_ALREADY_EXISTS = new ErrorCode(1_050_003_212, "设备已存在，不允许重复注册");
+    // 设备属性存储相关错误码 1-050-003-300
+    ErrorCode DEVICE_PROPERTY_HISTORY_TIMES_INVALID = new ErrorCode(1_050_003_300, "设备属性历史的时间范围，必须包含开始、结束两个时间");
+    ErrorCode DEVICE_PROPERTY_FIELD_NAME_INVALID = new ErrorCode(1_050_003_301, "属性标识符({}) 不合法，无法作为存储字段");
+    ErrorCode DEVICE_PROPERTY_FIELD_NAME_RESERVED = new ErrorCode(1_050_003_302, "属性标识符({}) 与存储保留字段({}) 冲突");
+    ErrorCode DEVICE_PROPERTY_FIELD_NAME_DUPLICATE = new ErrorCode(1_050_003_303, "属性标识符({}) 与({}) 的存储字段({}) 重复");
+    // 设备消息相关错误码 1-050-003-400
+    ErrorCode DEVICE_MESSAGE_RAW_PAYLOAD_INVALID = new ErrorCode(1_050_003_400, "透传载荷不合法：{}");
+    ErrorCode DEVICE_MESSAGE_RAW_PROTOCOL_NOT_SUPPORTED = new ErrorCode(1_050_003_401, "协议({}) 不支持透传下发");
+    ErrorCode DEVICE_MESSAGE_RAW_METHOD_RESERVED = new ErrorCode(1_050_003_402, "透传上报只能由网关创建");
 
     // ========== 产品分类 1-050-004-000 ==========
     ErrorCode PRODUCT_CATEGORY_NOT_EXISTS = new ErrorCode(1_050_004_000, "产品分类不存在");
@@ -57,15 +66,28 @@ public interface ErrorCodeConstants {
     // ========== 设备 Modbus 配置 1-050-006-000 ==========
     ErrorCode DEVICE_MODBUS_CONFIG_NOT_EXISTS = new ErrorCode(1_050_006_000, "设备 Modbus 连接配置不存在");
     ErrorCode DEVICE_MODBUS_CONFIG_EXISTS = new ErrorCode(1_050_006_001, "设备 Modbus 连接配置已存在");
+    ErrorCode DEVICE_MODBUS_CONFIG_IP_REQUIRED = new ErrorCode(1_050_006_002, "Client 模式下，IP 地址不能为空");
+    ErrorCode DEVICE_MODBUS_CONFIG_PORT_REQUIRED = new ErrorCode(1_050_006_003, "Client 模式下，端口不能为空");
+    ErrorCode DEVICE_MODBUS_CONFIG_TIMEOUT_REQUIRED = new ErrorCode(1_050_006_004, "Client 模式下，连接超时时间不能为空");
+    ErrorCode DEVICE_MODBUS_CONFIG_RETRY_INTERVAL_REQUIRED = new ErrorCode(1_050_006_005, "Client 模式下，重试间隔不能为空");
+    ErrorCode DEVICE_MODBUS_CONFIG_MODE_REQUIRED = new ErrorCode(1_050_006_006, "Server 模式下，工作模式不能为空");
+    ErrorCode DEVICE_MODBUS_CONFIG_FRAME_FORMAT_REQUIRED = new ErrorCode(1_050_006_007, "Server 模式下，数据帧格式不能为空");
 
     // ========== 设备 Modbus 点位 1-050-007-000 ==========
     ErrorCode DEVICE_MODBUS_POINT_NOT_EXISTS = new ErrorCode(1_050_007_000, "设备 Modbus 点位配置不存在");
     ErrorCode DEVICE_MODBUS_POINT_EXISTS = new ErrorCode(1_050_007_001, "设备 Modbus 点位配置已存在");
 
+    // ========== 设备影子 1-050-007-100 ==========
+    ErrorCode DEVICE_SHADOW_NOT_ENABLED = new ErrorCode(1_050_007_100, "设备影子未启用");
+    ErrorCode DEVICE_SHADOW_VERSION_CONFLICT = new ErrorCode(1_050_007_101, "设备影子版本冲突");
+    ErrorCode DEVICE_SHADOW_PROPERTY_COUNT_EXCEEDED = new ErrorCode(1_050_007_102, "设备影子属性数超过限制");
+
     // ========== OTA 固件相关 1-050-008-000 ==========
 
     ErrorCode OTA_FIRMWARE_NOT_EXISTS = new ErrorCode(1_050_008_000, "固件信息不存在");
     ErrorCode OTA_FIRMWARE_PRODUCT_VERSION_DUPLICATE = new ErrorCode(1_050_008_001, "产品版本号重复");
+    ErrorCode OTA_FIRMWARE_DELETE_FAIL_TASK_IN_PROGRESS = new ErrorCode(1_050_008_002,
+            "删除 OTA 固件失败，原因：存在进行中的升级任务");
 
     // ========== OTA 升级任务相关 1-050-008-100 ==========
 
@@ -83,6 +105,12 @@ public interface ErrorCodeConstants {
     ErrorCode OTA_TASK_RECORD_NOT_EXISTS = new ErrorCode(1_050_008_200, "升级记录不存在");
     ErrorCode OTA_TASK_RECORD_CANCEL_FAIL_STATUS_ERROR = new ErrorCode(1_050_008_201, "取消 OTA 升级记录失败，原因：记录状态不是进行中");
     ErrorCode OTA_TASK_RECORD_UPDATE_PROGRESS_FAIL_NO_EXISTS = new ErrorCode(1_050_008_202, "更新 OTA 升级记录进度失败，原因：该设备没有进行中的升级记录");
+
+    // ========== IoT 产品数据解析脚本 1-050-009-000 ==========
+    ErrorCode PRODUCT_SCRIPT_TOO_LONG = new ErrorCode(1_050_009_000, "数据解析脚本不能超过 {} 字节");
+    ErrorCode PRODUCT_SCRIPT_COMPILE_FAILED = new ErrorCode(1_050_009_001, "数据解析脚本语法错误：{}");
+    ErrorCode PRODUCT_SCRIPT_EMPTY = new ErrorCode(1_050_009_002, "启用数据解析脚本时，脚本内容不能为空");
+    ErrorCode PRODUCT_SCRIPT_DEBUG_BUSY = new ErrorCode(1_050_009_003, "脚本调试繁忙或已熔断，请稍后再试");
 
     // ========== IoT 数据流转规则 1-050-010-000 ==========
     ErrorCode DATA_RULE_NOT_EXISTS = new ErrorCode(1_050_010_000, "数据流转规则不存在");

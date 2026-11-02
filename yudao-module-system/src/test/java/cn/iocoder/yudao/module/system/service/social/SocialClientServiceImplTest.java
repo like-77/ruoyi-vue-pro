@@ -12,8 +12,8 @@ import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialWxaOrderUploadShippingInfoReqDTO;
-import cn.iocoder.yudao.module.system.controller.admin.socail.vo.client.SocialClientPageReqVO;
-import cn.iocoder.yudao.module.system.controller.admin.socail.vo.client.SocialClientSaveReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.social.vo.client.SocialClientPageReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.social.vo.client.SocialClientSaveReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialClientDO;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialClientMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
@@ -144,6 +144,48 @@ public class SocialClientServiceImplTest extends BaseDbUnitTest {
         assertServiceException(
                 () -> socialClientService.getAuthUser(socialType, userType, code, state),
                 SOCIAL_USER_AUTH_FAILURE, "模拟失败");
+    }
+
+    @Test
+    public void testAuthSocialUser_uuidNull() {
+        // 准备参数
+        Integer socialType = SocialTypeEnum.DINGTALK.getType();
+        Integer userType = randomPojo(UserTypeEnum.class).getValue();
+        String code = randomString();
+        String state = randomString();
+        // mock 方法（AuthRequest）
+        AuthRequest authRequest = mock(AuthRequest.class);
+        when(authRequestFactory.get(eq("DINGTALK_V2"))).thenReturn(authRequest);
+        // mock 方法（AuthResponse）：获取用户信息失败时，JustAuth 仍然返回成功，但 uuid 为空
+        AuthUser authUser = randomPojo(AuthUser.class, o -> o.setUuid(null));
+        AuthResponse<AuthUser> authResponse = new AuthResponse<>(2000, null, authUser);
+        when(authRequest.login(any())).thenReturn(authResponse);
+
+        // 调用并断言
+        assertServiceException(
+                () -> socialClientService.getAuthUser(socialType, userType, code, state),
+                SOCIAL_USER_AUTH_FAILURE, "未获取到用户标识");
+    }
+
+    @Test
+    public void testAuthSocialUser_uuidBlank() {
+        // 准备参数
+        Integer socialType = SocialTypeEnum.DINGTALK.getType();
+        Integer userType = randomPojo(UserTypeEnum.class).getValue();
+        String code = randomString();
+        String state = randomString();
+        // mock 方法（AuthRequest）
+        AuthRequest authRequest = mock(AuthRequest.class);
+        when(authRequestFactory.get(eq("DINGTALK_V2"))).thenReturn(authRequest);
+        // mock 方法（AuthResponse）
+        AuthUser authUser = randomPojo(AuthUser.class, o -> o.setUuid(" "));
+        AuthResponse<AuthUser> authResponse = new AuthResponse<>(2000, null, authUser);
+        when(authRequest.login(any())).thenReturn(authResponse);
+
+        // 调用并断言
+        assertServiceException(
+                () -> socialClientService.getAuthUser(socialType, userType, code, state),
+                SOCIAL_USER_AUTH_FAILURE, "未获取到用户标识");
     }
 
     @Test

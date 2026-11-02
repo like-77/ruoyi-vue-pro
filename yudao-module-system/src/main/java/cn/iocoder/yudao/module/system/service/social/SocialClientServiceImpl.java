@@ -16,6 +16,7 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -26,8 +27,8 @@ import cn.iocoder.yudao.module.system.api.social.dto.SocialWxQrcodeReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialWxaOrderNotifyConfirmReceiveReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialWxaOrderUploadShippingInfoReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialWxaSubscribeMessageSendReqDTO;
-import cn.iocoder.yudao.module.system.controller.admin.socail.vo.client.SocialClientPageReqVO;
-import cn.iocoder.yudao.module.system.controller.admin.socail.vo.client.SocialClientSaveReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.social.vo.client.SocialClientPageReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.social.vo.client.SocialClientSaveReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialClientDO;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialClientMapper;
 import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
@@ -187,7 +188,12 @@ public class SocialClientServiceImpl implements SocialClientService {
         if (!authResponse.ok()) {
             throw exception(SOCIAL_USER_AUTH_FAILURE, authResponse.getMsg());
         }
-        return (AuthUser) authResponse.getData();
+        // 部分平台获取用户信息失败时，仍然返回成功，但没有用户标识。例如说，钉钉新版登录缺少权限时，接口返回 403，但 JustAuth 不校验
+        AuthUser authUser = (AuthUser) authResponse.getData();
+        if (authUser == null || StrUtil.isBlank(authUser.getUuid())) {
+            throw exception(SOCIAL_USER_AUTH_FAILURE, "未获取到用户标识");
+        }
+        return authUser;
     }
 
     /**
